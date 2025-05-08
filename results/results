@@ -1,0 +1,51 @@
+dct_watermark: 3
+	Selected thresholds: LC: 2.636729 CC: 184.898033 PC: 0.006008 
+	Detected unfiltered: 7836 8091 8091 of 8091
+	Detected after blur: 76 8091 8091 of 8091
+	Detected after dctdnoiz_5: 46 5368 7996 of 8091
+	Detected after dctdnoiz_10: 0 2204 6435 of 8091
+	Detected after sharp: 8038 8091 8091 of 8091
+	Detected after light: 7552 8090 8091 of 8091
+	Detected after dark: 7099 8091 8091 of 8091
+	Detected after contrast: 6982 8088 8091 of 8091
+	Detected after bright: 7377 8091 8091 of 8091
+	Detected after noise: 7853 8091 8091 of 8091
+	Detected after nlmeans_10: 40 4310 7799 of 8091
+	Detected after nlmeans_5: 655 7459 8087 of 8091
+	Detected after pixelize: 0 0 1435 of 8091
+	Detected after fftdnoiz_15: 31 5862 8064 of 8091
+	Detected after fftdnoiz_5: 378 7601 8091 of 8091
+dct_watermark: 5
+	Selected thresholds: LC: 6.650543 CC: 134.940436 PC: 0.005300 
+	Detected unfiltered: 7977 8091 8091 of 8091
+	Detected after blur: 455 8091 8091 of 8091
+	Detected after dctdnoiz_5: 147 7660 8089 of 8091
+	Detected after dctdnoiz_10: 3 5154 7917 of 8091
+	Detected after sharp: 8061 8091 8091 of 8091
+	Detected after light: 7778 8091 8091 of 8091
+	Detected after dark: 7468 8091 8091 of 8091
+	Detected after contrast: 7369 8091 8091 of 8091
+	Detected after bright: 7838 8091 8091 of 8091
+	Detected after noise: 7919 8091 8091 of 8091
+	Detected after nlmeans_10: 61 6523 8057 of 8091
+	Detected after nlmeans_5: 870 8021 8091 of 8091
+	Detected after pixelize: 0 334 5467 of 8091
+	Detected after fftdnoiz_15: 46 7633 8091 of 8091
+	Detected after fftdnoiz_5: 633 8087 8091 of 8091
+dct_watermark: 10
+	Selected thresholds: LC: 25.404694 CC: 114.102025 PC: 0.006844 
+	Detected unfiltered: 7986 8091 8091 of 8091
+	Detected after blur: 974 8091 8091 of 8091
+	Detected after dctdnoiz_5: 402 8091 8091 of 8091
+	Detected after dctdnoiz_10: 2 7704 8089 of 8091
+	Detected after sharp: 8065 8091 8091 of 8091
+	Detected after light: 7818 8091 8091 of 8091
+	Detected after dark: 7632 8091 8091 of 8091
+	Detected after contrast: 7485 8091 8091 of 8091
+	Detected after bright: 7887 8091 8091 of 8091
+	Detected after noise: 7909 8091 8091 of 8091
+	Detected after nlmeans_10: 70 7858 8090 of 8091
+	Detected after nlmeans_5: 1182 8090 8091 of 8091
+	Detected after pixelize: 0 5832 7748 of 8091
+	Detected after fftdnoiz_15: 110 8091 8091 of 8091
+	Detected after fftdnoiz_5: 1487 8091 8091 of 8091
