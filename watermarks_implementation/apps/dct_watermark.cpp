@@ -34,8 +34,8 @@ int main(int argc, char** argv)
 		("reference,r", po::value<std::string>(), "reference file")
 		("skip_count,s", po::value<int>()->default_value(16), "number of first coefficients to skip")
 		("barni,b", po::value<bool>()->default_value(false), "Use the Barni version of embedding algorithm")
-		("correlation,c", po::value<int>()->default_value(2), "Type of correlation detector used on extracting (0-linear correlation, 1-normalized correlation(not supported) 2 - correlation coefficient(default))")
-		("middle_frequncy,m", po::value<bool>()->default_value(false), "Use middle frequency watermarking")
+		("correlation,c", po::value<int>()->default_value(2), "Type of correlation detector used on extracting (0-linear correlation, 1-normalized correlation, 2-correlation coefficient(default), 3-pearson coefficient)")
+		("middle_frequence,m", po::value<bool>()->default_value(false), "Use middle frequency watermarking")
 
 		;
 
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 
 		bool BarniVersion = vm["barni"].as<bool>();
 
-		std::vector<int> referenceData = DCTWatermark::createReference(pframe, vm["reference_max"].as<int>(), vm["skip_count"].as<int>(), BarniVersion, embeddingType);
+		std::vector<double> referenceData = DCTWatermark::createReference(pframe, vm["reference_max"].as<int>(), vm["skip_count"].as<int>(), BarniVersion, embeddingType);
 		DCTWatermark::referenceStore(referenceData, vm["out"].as<std::string>());
 	}
 	else if (vm.count("embed"))
@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 			return 1;
 		}
 
-		std::vector<int> referenceData = DCTWatermark::referenceLoad(vm["reference"].as<std::string>());
+		std::vector<double> referenceData = DCTWatermark::referenceLoad(vm["reference"].as<std::string>());
 		if (referenceData.empty())
 		{
 			std::cout << "Error opening reference file `" + vm["reference"].as<std::string>() + "`";
@@ -112,7 +112,7 @@ int main(int argc, char** argv)
 			return 1;
 		}
 
-		std::vector<int> referenceData = DCTWatermark::referenceLoad(vm["reference"].as<std::string>());
+		std::vector<double> referenceData = DCTWatermark::referenceLoad(vm["reference"].as<std::string>());
 		if (referenceData.empty())
 		{
 			std::cout << "Error opening reference file `" + vm["reference"].as<std::string>() + "`";
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
 			return 1;
 		}
 
-		std::vector<int> referenceData = DCTWatermark::referenceLoad(vm["reference"].as<std::string>());
+		std::vector<double> referenceData = DCTWatermark::referenceLoad(vm["reference"].as<std::string>());
 		if (referenceData.empty())
 		{
 			std::cout << "Error opening reference file `" + vm["reference"].as<std::string>() + "`";
@@ -179,7 +179,7 @@ int main(int argc, char** argv)
 			return 1;
 		}
 
-		std::vector<int> referenceData = DCTWatermark::referenceLoad(vm["reference"].as<std::string>());
+		std::vector<double> referenceData = DCTWatermark::referenceLoad(vm["reference"].as<std::string>());
 		if (referenceData.empty())
 		{
 			std::cout << "Error opening reference file `" + vm["reference"].as<std::string>() + "`";

@@ -1,11 +1,11 @@
 #include "EBlindDLC.h"
 #include "WatermarkReference.h"
-#include "Detector.h"
 
-EBlindDLC::EBlindDLC(double alpha, double detectThreshold, std::weak_ptr<VideoFrame> preference): Watermark(),
+EBlindDLC::EBlindDLC(double alpha, double detectThreshold, std::weak_ptr<VideoFrame> preference, Detector::Type detectorType): Watermark(),
 	m_alpha(alpha),
 	m_detectThreshold(detectThreshold),
-	m_preference(preference)
+	m_preference(preference),
+	m_detectorType(detectorType)
 {
 }
 
@@ -62,12 +62,43 @@ EBlindDLC::DetectResult EBlindDLC::detectInternal(const std::shared_ptr<VideoFra
 	if (m_detectThreshold < 0)
 		return EBlindDLC::FAILED;
 
+	if (pframe->width() != preferenceFrame->width() || pframe->height() != preferenceFrame->height())
+		return EBlindDLC::FAILED;
+
+
 	Detector::Result res = Detector::Result::FAILED;
 
-	if (pframe->colorFormat() == VideoFrame::Color)
-		res = Detector::CorrelationCoefficientRGB(pframe, preferenceFrame, m_detectThreshold, pcorrelation);
-	else
-		res = Detector::CorrelationCoefficientGrayscale(pframe, preferenceFrame, m_detectThreshold, pcorrelation);
+	std::size_t size = preferenceFrame->width() * preferenceFrame->height() * (pframe->colorFormat() == VideoFrame::Color ? 3 : 1);
+
+	std::vector<double> data, noise;
+	data.reserve(size);
+	noise.reserve(size);
+
+	uint8_t* pdata = pframe->data(0);
+	uint8_t* pnoise = preferenceFrame->data(0);
+
+	for (std::size_t i = 0; i < preferenceFrame->height(); i++)
+	{
+		data.insert(data.end(), pdata + i * pframe->stride(0), pdata + i * pframe->stride(0) + pframe->width());
+		noise.insert(noise.end(), pnoise + i * preferenceFrame->stride(0), pnoise + i * preferenceFrame->stride(0) + preferenceFrame->width());
+	}
+
+	if (m_detectorType == Detector::CORRELATION_COEFFICIENT)
+	{
+		res = Detector::CorrelationCoefficient(data, noise, m_detectThreshold, pcorrelation);
+	}
+	else if (m_detectorType == Detector::LINEAR)
+	{
+		res = Detector::LinearCorrelation(data, noise, m_detectThreshold, pcorrelation);
+	}
+	else if (m_detectorType == Detector::NORMALIZED)
+	{
+		res = Detector::NormalizedCorrelation(data, noise, m_detectThreshold, pcorrelation);
+	}
+	else if (m_detectorType == Detector::PEARSON_COEFFICIENT)
+	{
+		res = Detector::PearsonCorrelation(data, noise, m_detectThreshold, pcorrelation);
+	}
 
 	return (EBlindDLC::DetectResult) res;
 }

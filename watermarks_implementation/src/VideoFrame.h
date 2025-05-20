@@ -40,6 +40,7 @@ public:
 
   bool applyWR(std::shared_ptr<VideoFrame> preference, double alpha, bool key, Optimization optimization = Auto);
   bool applyWR(std::shared_ptr<VideoFrame> preference, double alpha, bool key, ThreadPool &threadPool, Optimization optimization = Auto, ThreadingType threading  = Rows);
+  bool applyWR(std::vector<double> &reference, double alpha, bool key);
 
   std::size_t width() const;
   std::size_t height() const;

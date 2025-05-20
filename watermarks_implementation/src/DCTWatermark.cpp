@@ -69,7 +69,7 @@ namespace
 	}
 }
 
-DCTWatermark::DCTWatermark(double alpha, double detectThreshold, int skipCount, std::vector<int> reference, WatermarkType type, Detector::Type detectorType, DCTWatermark::EmbeddingType embeddingType) : Watermark(),
+DCTWatermark::DCTWatermark(double alpha, double detectThreshold, int skipCount, std::vector<double> reference, WatermarkType type, Detector::Type detectorType, DCTWatermark::EmbeddingType embeddingType) : Watermark(),
 	m_alpha(alpha),
 	m_detectThreshold(detectThreshold),
 	m_skipCount(skipCount),
@@ -90,7 +90,7 @@ void DCTWatermark::setDetectThreshold(double detectThreshold)
 	m_detectThreshold = detectThreshold;
 }
 
-void DCTWatermark::setReference(const std::vector<int> &reference)
+void DCTWatermark::setReference(const std::vector<double> &reference)
 {
 	m_reference = reference;
 }
@@ -279,10 +279,10 @@ bool DCTWatermark::getAverageDCT(const std::shared_ptr<VideoFrame> pframe, doubl
 }
 
 
-std::vector<int> DCTWatermark::createReference(const std::shared_ptr<VideoFrame> pframe, int maxValue, int skipCount, bool BarniVersion, DCTWatermark::EmbeddingType embeddingType)
+std::vector<double> DCTWatermark::createReference(const std::shared_ptr<VideoFrame> pframe, int maxValue, int skipCount, bool BarniVersion, DCTWatermark::EmbeddingType embeddingType)
 {
 	if (skipCount >= BLOCK_SIZE * BLOCK_SIZE)
-		return std::vector<int>();
+		return std::vector<double>();
 
 	std::size_t widthInBlocks = pframe->width() / BLOCK_SIZE;
 	std::size_t heightInBlocks = pframe->height() / BLOCK_SIZE;
@@ -292,13 +292,22 @@ std::vector<int> DCTWatermark::createReference(const std::shared_ptr<VideoFrame>
 	if (pframe->colorFormat() == VideoFrame::Color)
 		referenceSize *= 3;
 
-	std::vector<int> reference(referenceSize);
+	std::vector<double> reference(referenceSize);
 
 	auto genRandom = [&maxValue]() {
-		return rand() % maxValue;
+		return ((double)rand() / RAND_MAX) * maxValue;
 	};
 
-	std::generate(reference.begin(), reference.end(), genRandom);
+//	std::generate(reference.begin(), reference.end(), genRandom);
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::normal_distribution<double> dist(0.0, maxValue);  // mean=0, stddev=1
+
+	for (std::size_t i = 0; i < reference.size(); i++)
+	{
+		int val = dist(gen);
+		reference[i] = val;
+	}
 
 	if (BarniVersion)
 	{
@@ -308,20 +317,18 @@ std::vector<int> DCTWatermark::createReference(const std::shared_ptr<VideoFrame>
 
 		for (std::size_t i = 0; i < reference.size(); i++)
 		{
-			int val = dist(gen) * 255;
+			int val = dist(gen);
 			reference[i] = val;
-			if (reference[i] < 0)
-				reference[i] *= -1;
 		}
 	}
 
 	return reference;
 }
 
-std::vector<int> DCTWatermark::cropReference(const std::vector<int>& reference, int skipCount, std::size_t x, std::size_t y, std::size_t width, std::size_t height, std::size_t widthOrig, std::size_t heightOrig)
+std::vector<double> DCTWatermark::cropReference(const std::vector<double>& reference, int skipCount, std::size_t x, std::size_t y, std::size_t width, std::size_t height, std::size_t widthOrig, std::size_t heightOrig)
 {
 	if (x % BLOCK_SIZE || y % BLOCK_SIZE)
-		return std::vector<int>();
+		return std::vector<double>();
 
 	std::size_t blockSize = BLOCK_SIZE * BLOCK_SIZE - skipCount;
 	std::size_t blockCnt = reference.size() / blockSize;
@@ -340,7 +347,7 @@ std::vector<int> DCTWatermark::cropReference(const std::vector<int>& reference, 
 	std::size_t planeCroppBlocksCnt = (xEnd - xStart) * (yEnd - yStart);
 
 	std::size_t resSize = planeCnt * (xEnd - xStart) * (yEnd - yStart) * blockSize;
-	std::vector<int> res(resSize);
+	std::vector<double> res(resSize);
 	for (std::size_t y = yStart; y < yEnd; y++)
 	{
 		for (std::size_t x = xStart; x < xEnd; x++)
@@ -358,7 +365,7 @@ std::vector<int> DCTWatermark::cropReference(const std::vector<int>& reference, 
 	return res;
 }
 
-void DCTWatermark::referenceStore(const std::vector<int>& data, const std::string& filename)
+void DCTWatermark::referenceStore(const std::vector<double>& data, const std::string& filename)
 {
 	std::ofstream file(filename);
 	for (size_t i = 0; i < data.size(); i++)
@@ -369,14 +376,14 @@ void DCTWatermark::referenceStore(const std::vector<int>& data, const std::strin
 	}
 }
 
-std::vector<int> DCTWatermark::referenceLoad(const std::string& filename)
+std::vector<double> DCTWatermark::referenceLoad(const std::string& filename)
 {
 	std::ifstream file(filename);
-	std::vector<int> loadedData;
+	std::vector<double> loadedData;
 
 	while (!file.eof())
 	{
-		int value;
+		double value;
 		file >> value;
 		loadedData.push_back(value);
 	}

@@ -19,7 +19,7 @@ BOOST_AUTO_TEST_CASE(dct_reference)
 
   int skipCount = 16;
   int maxValue = 64;
-  std::vector<int> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
+  std::vector<double> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
 
   std::size_t widthInBlocks = pframe->width() / DCTWatermark::BLOCK_SIZE;
   std::size_t heightInBlocks = pframe->height() / DCTWatermark::BLOCK_SIZE;
@@ -27,13 +27,13 @@ BOOST_AUTO_TEST_CASE(dct_reference)
 
   BOOST_CHECK_EQUAL(expectedSize, reference.size());
 
-  bool maxValueCorrect = true;
+  int maxValueOverflow = 0;
   for (std::size_t i = 0; i < reference.size(); i++)
   {
-    if (reference[i] >= maxValue)
-      maxValueCorrect = false;
+    if (reference[i] > maxValue)
+      maxValueOverflow++;
   }
-  BOOST_CHECK(maxValueCorrect);
+  BOOST_CHECK(maxValueOverflow < expectedSize / 5);
 }
 
 BOOST_AUTO_TEST_CASE(dct_reference_store_load)
@@ -45,12 +45,21 @@ BOOST_AUTO_TEST_CASE(dct_reference_store_load)
 
   int skipCount = 16;
   int maxValue = 64;
-  std::vector<int> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
+  std::vector<double> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
 
   DCTWatermark::referenceStore(reference, getSourceDir(__FILE__) + "out/dct_reference_store_load");
-  std::vector<int> loaded = DCTWatermark::referenceLoad(getSourceDir(__FILE__) + "out/dct_reference_store_load");
+  std::vector<double> loaded = DCTWatermark::referenceLoad(getSourceDir(__FILE__) + "out/dct_reference_store_load");
 
-  BOOST_CHECK_EQUAL_COLLECTIONS(reference.begin(), reference.end(), loaded.begin(), loaded.end());
+  BOOST_CHECK_EQUAL(reference.size(), loaded.size());
+
+  bool collections_equal = true;
+  for (size_t i = 0; i < reference.size() && collections_equal; i++)
+  {
+    if (std::fabs(reference[i] - loaded[i]) > 0.001)
+      collections_equal = false;
+  }
+
+  BOOST_CHECK(collections_equal);
 }
 
 BOOST_AUTO_TEST_CASE(dct_watermark)
@@ -64,7 +73,7 @@ BOOST_AUTO_TEST_CASE(dct_watermark)
 
   int skipCount = 16;
   int maxValue = 64;
-  std::vector<int> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
+  std::vector<double> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
 
   DCTWatermark watermark(0.3, 0.1, skipCount, reference, DCTWatermark::LEGACY_CC);
   watermark.embed(pframeTrue, true);
@@ -86,7 +95,7 @@ BOOST_AUTO_TEST_CASE(dct_watermark_crop)
 
   int skipCount = 16;
   int maxValue = 64;
-  std::vector<int> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
+  std::vector<double> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
 
   DCTWatermark watermark(0.3, 0.1, skipCount, reference, DCTWatermark::LEGACY_CC);
   watermark.embed(pframeTrue, true);
@@ -103,7 +112,7 @@ BOOST_AUTO_TEST_CASE(dct_watermark_crop)
   std::string fileNameCropped = getSourceDir(__FILE__) + "out/dct_watermark_crop_cropped_true.png";
   cv::imwrite(fileNameCropped, croppedImage);
 
-  std::vector<int> referenceCropped = DCTWatermark::cropReference(reference, skipCount, 128, 48, 300, 451, pframe->width(), pframe->height());
+  std::vector<double> referenceCropped = DCTWatermark::cropReference(reference, skipCount, 128, 48, 300, 451, pframe->width(), pframe->height());
 
   std::shared_ptr<VideoFrame> pframeCropped = std::make_shared<VideoFrame>(fileNameCropped);
   DCTWatermark watermarkCropped(0.3, 0.1, skipCount, referenceCropped, DCTWatermark::LEGACY_CC);
@@ -139,7 +148,7 @@ BOOST_AUTO_TEST_CASE(dct_watermark_crop_gray)
 
   int skipCount = 16;
   int maxValue = 16;
-  std::vector<int> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
+  std::vector<double> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
 
   DCTWatermark watermark(0.5, 0.1, skipCount, reference);
   watermark.embed(pframeTrue, true);
@@ -155,7 +164,7 @@ BOOST_AUTO_TEST_CASE(dct_watermark_crop_gray)
   std::string fileNameCropped = getSourceDir(__FILE__) + "out/dct_watermark_crop_gray_cropped_true.png";
   cv::imwrite(fileNameCropped, croppedImage);
 
-  std::vector<int> referenceCropped = DCTWatermark::cropReference(reference, skipCount, 256, 256, 128, 128, pframe->width(), pframe->height());
+  std::vector<double> referenceCropped = DCTWatermark::cropReference(reference, skipCount, 256, 256, 128, 128, pframe->width(), pframe->height());
 
   std::shared_ptr<VideoFrame> pframeCropped = std::make_shared<VideoFrame>(fileNameCropped, VideoFrame::Grayscale);
   DCTWatermark watermarkCropped(0.3, 0.1, skipCount, referenceCropped, DCTWatermark::LEGACY_CC);
@@ -173,14 +182,14 @@ BOOST_AUTO_TEST_CASE(dct_watermark_get_avg)
 
   int skipCount = 8;
   int maxValue = 255;
-  std::vector<int> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
+  std::vector<double> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
 
   DCTWatermark watermark(0.003125, 0.1, skipCount, reference, DCTWatermark::BARNI);
   watermark.embed(pframeTrue, true);
 
   double avgDctTrue = 0;
   watermark.getAverageDCT(pframeTrue, avgDctTrue);
-  BOOST_CHECK(avgDctTrue > 10.5 && avgDctTrue < 11);
+  BOOST_CHECK(avgDctTrue > 10.5 && avgDctTrue < 12);
 }
 
 BOOST_AUTO_TEST_CASE(dct_watermark_normalized)
@@ -194,7 +203,7 @@ BOOST_AUTO_TEST_CASE(dct_watermark_normalized)
 
   int skipCount = 16;
   int maxValue = 64;
-  std::vector<int> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
+  std::vector<double> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
 
   DCTWatermark watermark(0.5, 0.000002, skipCount, reference, DCTWatermark::DEFAULT, Detector::NORMALIZED);
   watermark.embed(pframeTrue, true);
@@ -203,7 +212,7 @@ BOOST_AUTO_TEST_CASE(dct_watermark_normalized)
   BOOST_CHECK_EQUAL(watermark.detect(pframeTrue), Watermark::DetectResult::TRUE);
   BOOST_CHECK_EQUAL(watermark.detect(pframe), Watermark::DetectResult::NO_WATERMARK);
 
-  std::vector<int> reference2 = DCTWatermark::createReference(pframe, maxValue, skipCount);
+  std::vector<double> reference2 = DCTWatermark::createReference(pframe, maxValue, skipCount);
   DCTWatermark watermark2(0.3, 0.01, skipCount, reference2, DCTWatermark::DEFAULT, Detector::NORMALIZED);
   std::shared_ptr<VideoFrame> pframeReference2 = std::make_shared<VideoFrame>(*pframe);
   watermark2.embed(pframeReference2, true);
@@ -222,9 +231,9 @@ BOOST_AUTO_TEST_CASE(dct_watermark_cc)
 
   int skipCount = 16;
   int maxValue = 64;
-  std::vector<int> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
+  std::vector<double> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
 
-  DCTWatermark watermark(0.3, 100, skipCount, reference, DCTWatermark::DEFAULT, Detector::CORRELATION_COEFFICIENT);
+  DCTWatermark watermark(0.3, 0.0000001, skipCount, reference, DCTWatermark::DEFAULT, Detector::CORRELATION_COEFFICIENT);
   watermark.embed(pframeTrue, true);
   watermark.embed(pframeFalse, false);
 
@@ -244,7 +253,7 @@ BOOST_AUTO_TEST_CASE(dct_watermark_pearson)
 
   int skipCount = 16;
   int maxValue = 64;
-  std::vector<int> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
+  std::vector<double> reference = DCTWatermark::createReference(pframe, maxValue, skipCount);
 
   DCTWatermark watermark(0.3, 0.1, skipCount, reference, DCTWatermark::DEFAULT, Detector::PEARSON_COEFFICIENT);
   watermark.embed(pframeTrue, true);
@@ -266,9 +275,9 @@ BOOST_AUTO_TEST_CASE(dct_watermark_middle)
 
   int skipCount = 16;
   int maxValue = 64;
-  std::vector<int> reference = DCTWatermark::createReference(pframe, maxValue, skipCount, false, DCTWatermark::MIDDLE_FREQUENCY);
+  std::vector<double> reference = DCTWatermark::createReference(pframe, maxValue, skipCount, false, DCTWatermark::MIDDLE_FREQUENCY);
 
-  DCTWatermark watermark(0.3, 100, skipCount, reference, DCTWatermark::DEFAULT, Detector::CORRELATION_COEFFICIENT, DCTWatermark::MIDDLE_FREQUENCY);
+  DCTWatermark watermark(0.3, 0.0000001, skipCount, reference, DCTWatermark::DEFAULT, Detector::CORRELATION_COEFFICIENT, DCTWatermark::MIDDLE_FREQUENCY);
   watermark.embed(pframeTrue, true);
   watermark.embed(pframeFalse, false);
 

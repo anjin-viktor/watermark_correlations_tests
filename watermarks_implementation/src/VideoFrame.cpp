@@ -340,6 +340,34 @@ bool VideoFrame::applyWR(std::shared_ptr<VideoFrame> preference, double alpha, b
 }
 
 
+bool VideoFrame::applyWR(std::vector<double>& reference, double alpha, bool key)
+{
+  if (m_width * m_height * (m_colorFormat == VideoFrame::Color ? 3 : 1) != reference.size())
+    return false;
+
+
+  uint8_t* pdata = &m_data[0][0];
+  std::size_t stride = m_width * (m_colorFormat == VideoFrame::Color ? 3 : 1);
+
+  for (int i = 0; i < m_height; i++)
+  {
+    for (int j = 0; j < m_width; j++)
+    {
+      int val = pdata[i * stride + j];
+      int wr = (int)(reference[i * stride + j] * alpha);
+      if (alpha - 1.0 > std::numeric_limits<float>::epsilon())
+        wr = (int)(wr * alpha);
+      if (key)
+        val = std::min(255, val + wr);
+      else
+        val = std::max(0, val - wr);
+      pdata[i * stride + j] = val;
+    }
+  }
+
+  return true;
+}
+
 bool VideoFrame::applyWR(std::shared_ptr<VideoFrame> preference, double alpha, bool key, ThreadPool& threadPool, VideoFrame::Optimization optimization, VideoFrame::ThreadingType threading)
 {
   if (!preference)

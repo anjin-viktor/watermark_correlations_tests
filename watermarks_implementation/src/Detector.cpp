@@ -138,7 +138,8 @@ Detector::Result Detector::CorrelationCoefficientGrayscale(std::shared_ptr<Video
   return res;
 }
 
-Detector::Result Detector::CorrelationCoefficient(std::vector<int> data, std::vector<int> noise, double threshold, double *pcorrelation)
+template <typename T1, typename T2>
+Detector::Result Detector::CorrelationCoefficient(std::vector<T1> data, std::vector<T2> noise, double threshold, double *pcorrelation)
 {
   if (data.size() != noise.size() || data.empty())
     return Detector::FAILED;
@@ -153,36 +154,17 @@ Detector::Result Detector::CorrelationCoefficient(std::vector<int> data, std::ve
   meand /= data.size();
   meann /= data.size();
 
-  double maxData = data[0] - meand;
-  double maxNoise = noise[0] - meann;
-
   for (std::size_t i = 0; i < data.size(); i++)
   {
-    if (maxData < (data[i] - meand))
-      maxData = data[i] - meand;
-
-    if (maxNoise < (noise[i] - meann))
-      maxNoise = noise[i] - meann;
+    data[i] -= meand;
+    noise[i] -= meann;
   }
 
-  double corr = 0;
-
-  for (std::size_t i = 0; i < data.size(); i++)
-    corr += ((data[i] - meand) / maxData) * ((noise[i] - meann) / maxNoise);
-
-  if (pcorrelation)
-    *pcorrelation = corr;
-
-  Detector::Result res = Detector::NO_WATERMARK;
-  if (corr < -threshold)
-    res = Detector::FALSE;
-  else if (corr > threshold)
-    res = Detector::TRUE;
-
-  return res;
+  return NormalizedCorrelation(data, noise, threshold, pcorrelation);
 }
 
-Detector::Result Detector::CorrelationCoefficientLegacy(std::vector<int> data, std::vector<int> noise, double threshold, double* pcorrelation)
+template <typename T1, typename T2>
+Detector::Result Detector::CorrelationCoefficientLegacy(std::vector<T1> data, std::vector<T2> noise, double threshold, double* pcorrelation)
 {
   if (data.size() != noise.size())
     return Detector::FAILED;
@@ -340,7 +322,8 @@ Detector::Result Detector::NormalizedCorrelationRGB(std::shared_ptr<VideoFrame> 
   return res;
 }
 
-Detector::Result Detector::LinearCorrelation(std::vector<int> data, std::vector<int> noise, double threshold, double* pcorrelation)
+template <typename T1, typename T2>
+Detector::Result Detector::LinearCorrelation(std::vector<T1> data, std::vector<T2> noise, double threshold, double* pcorrelation)
 {
   if (data.size() != noise.size())
     return Detector::FAILED;
@@ -365,7 +348,8 @@ Detector::Result Detector::LinearCorrelation(std::vector<int> data, std::vector<
   return res;
 }
 
-Detector::Result Detector::NormalizedCorrelation(std::vector<int> data, std::vector<int> noise, double threshold, double* pcorrelation)
+template <typename T1, typename T2>
+Detector::Result Detector::NormalizedCorrelation(std::vector<T1> data, std::vector<T2> noise, double threshold, double* pcorrelation)
 {
   if (data.size() != noise.size() || data.empty())
     return Detector::FAILED;
@@ -401,7 +385,8 @@ Detector::Result Detector::NormalizedCorrelation(std::vector<int> data, std::vec
   return res;
 }
 
-Detector::Result Detector::PearsonCorrelation(std::vector<int> data, std::vector<int> noise, double threshold, double* pcorrelation)
+template <typename T1, typename T2>
+Detector::Result Detector::PearsonCorrelation(std::vector<T1> data, std::vector<T2> noise, double threshold, double* pcorrelation)
 {
   if (data.size() != noise.size() || data.empty())
     return Detector::FAILED;
@@ -447,3 +432,19 @@ Detector::Result Detector::PearsonCorrelation(std::vector<int> data, std::vector
 
   return res;
 }
+
+template Detector::Result Detector::CorrelationCoefficientLegacy<int,int>(std::vector<int> data, std::vector<int> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::CorrelationCoefficientLegacy<int,double>(std::vector<int> data, std::vector<double> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::CorrelationCoefficientLegacy<double, double>(std::vector<double> data, std::vector<double> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::CorrelationCoefficient<int, int>(std::vector<int> data, std::vector<int> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::CorrelationCoefficient<int, double>(std::vector<int> data, std::vector<double> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::CorrelationCoefficient<double, double>(std::vector<double> data, std::vector<double> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::LinearCorrelation<int, int>(std::vector<int> data, std::vector<int> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::LinearCorrelation<int, double>(std::vector<int> data, std::vector<double> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::LinearCorrelation<double, double>(std::vector<double> data, std::vector<double> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::NormalizedCorrelation<int, int>(std::vector<int> data, std::vector<int> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::NormalizedCorrelation<int, double>(std::vector<int> data, std::vector<double> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::NormalizedCorrelation<double, double>(std::vector<double> data, std::vector<double> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::PearsonCorrelation<int, int>(std::vector<int> data, std::vector<int> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::PearsonCorrelation<int, double>(std::vector<int> data, std::vector<double> noise, double threshold, double* pcorrelation);
+template Detector::Result Detector::PearsonCorrelation<double, double>(std::vector<double> data, std::vector<double> noise, double threshold, double* pcorrelation);
