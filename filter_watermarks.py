@@ -13,6 +13,7 @@ def filter_watermark(watermark, watermark_name, embedding_level, input_filename,
     os.makedirs("correlation_tests/" + watermark_name, exist_ok=True)
     os.makedirs(name_prefix, exist_ok=True)
     os.makedirs(name_prefix + "/" + filter_name, exist_ok=True)
+    os.makedirs(name_prefix + "/wo_embedding_" + filter_name, exist_ok=True)
 
     filename = Path(input_filename)
     filename_wo_ext = filename.with_suffix('')
@@ -30,6 +31,7 @@ def filter_watermarks_multithread(watermark, watermark_name, embedding_level, fi
     futures = []
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
+#        filter_watermark(watermark, watermark_name, embedding_level, filename, filter_name, filter_params)
         future = threadPool.submit(filter_watermark, watermark, watermark_name, embedding_level, filename, filter_name, filter_params)
         futures.append(future)
 
@@ -43,8 +45,11 @@ def remove_files(watermark, watermark_name, embedding_level, filter_name):
     dir_name = "correlation_tests/" + watermark_name + "/" + str(embedding_level) + "/" + filter_name
     shutil.rmtree(dir_name)
 
+    dir_name = "correlation_tests/" + watermark_name + "/" + str(embedding_level) + "/wo_embedding_" + filter_name
+    shutil.rmtree(dir_name)
+
 
 if __name__ == "__main__":
-    embedding_level = 5
+    embedding_level = 3
     filter_watermarks(dct_watermark, "dct_watermark", embedding_level, "blur", "unsharp=3:3:-0.25:3:3:-0.25")
 #    remove_files(dct_watermark, "dct_watermark", embedding_level, "blur")

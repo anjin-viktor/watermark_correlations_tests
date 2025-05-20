@@ -5,10 +5,12 @@ def find_threshold(file_name_with_embedding, file_name_without_embedding):
     minLC = -1
     minNC = -1
     minCC = -1
+    minPC = -1
 
     maxLCWoWatermark = -1.0
     maxNCWoWatermark = -1.0
     maxCCWoWatermark = -1.0
+    maxPCWoWatermark = -1.0
 
     avgLC = 0
     avgNC = 0
@@ -27,6 +29,7 @@ def find_threshold(file_name_with_embedding, file_name_without_embedding):
                 minLC = float(row[1])
                 minNC = float(row[2])
                 minCC = float(row[3]) 
+                minPC = float(row[4]) 
 
             if(float(row[1]) < minLC):
                 minLC = float(row[1])
@@ -34,6 +37,8 @@ def find_threshold(file_name_with_embedding, file_name_without_embedding):
                 minNC = float(row[2])
             if(float(row[3]) < minCC):
                 minCC = float(row[3])
+            if(float(row[4]) < minPC):
+                minPC = float(row[4])
 
             avgLC += float(row[1])
             avgNC += float(row[2])
@@ -58,6 +63,8 @@ def find_threshold(file_name_with_embedding, file_name_without_embedding):
                 maxNCWoWatermark = float(row[2])
             if(float(row[3]) > maxCCWoWatermark):
                 maxCCWoWatermark = float(row[3])
+            if(float(row[4]) > maxPCWoWatermark):
+                maxPCWoWatermark = float(row[4])
 
             avgLCWoWatermark += float(row[1])
             avgNCWoWatermark += float(row[2])
@@ -75,6 +82,7 @@ def find_threshold(file_name_with_embedding, file_name_without_embedding):
     thresholdLC = maxLCWoWatermark
     thresholdNC = maxNCWoWatermark
     thresholdCC = maxCCWoWatermark
+    thresholdPC = maxPCWoWatermark
 #    print([thresholdLC, thresholdNC, thresholdCC])
 #    print("LinearCorrelation:")
 #    print("\taverage correlation WO watermark: %f" % (avgLCWoWatermark))
@@ -91,7 +99,7 @@ def find_threshold(file_name_with_embedding, file_name_without_embedding):
 #    print("\taverage correlation WITH watermark: %f" % (avgCC))
 #    print("\tselected threshold: %f" % (thresholdCC))
 
-    return [thresholdLC, thresholdNC, thresholdCC]
+    return [thresholdLC, thresholdNC, thresholdCC, thresholdPC]
 
 if __name__ == "__main__":
     find_threshold(calc_correlations.get_results_file_name("dct_watermark", 5, ""), calc_correlations.get_results_file_name_wo_embedding("dct_watermark", 5))
